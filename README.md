@@ -1,8 +1,22 @@
-# 🕯️ Date Night Planner
+# Date & Hangout Planner
 
-A cozy, single-page app for collecting date and hangout ideas, sorting them by how likely they are to happen, and checking them off once you've done them.
+A full-stack date and hangout planner for collecting ideas, sorting them by how likely they are to happen, and checking them off once you've done them. The frontend is a static HTML/CSS/JavaScript app, with Supabase providing authentication and the database.
 
-Built with plain HTML, Tailwind CSS (CDN), vanilla JavaScript, and [Supabase](https://supabase.com) for auth and the database. There's no build step and no framework.
+## Live App
+
+**Netlify URL:** TODO: add the deployed application URL before submitting.
+
+## Technologies
+
+- HTML
+- Tailwind CSS (Play CDN) and custom CSS
+- JavaScript
+- Supabase Auth and Postgres
+- Netlify (static hosting)
+
+## Demo
+
+**Unlisted YouTube demo:** TODO: add the video URL before submitting.
 
 ## Features
 
@@ -23,7 +37,7 @@ Built with plain HTML, Tailwind CSS (CDN), vanilla JavaScript, and [Supabase](ht
 ├── styles.css          # Warm theme + component styles
 ├── schema.sql          # Table, index, and RLS policies
 ├── config.example.js   # Template for runtime config (copy to config.js)
-├── .env.example        # Template for environment variables
+├── .env.example        # Template for deployment environment variables
 └── README.md
 ```
 
@@ -55,26 +69,25 @@ Email confirmation is optional. You can turn it off under **Authentication → P
 
 ### 3. Add your credentials
 
-Get your **Project URL** and **anon public key** from **Project Settings → API**.
+Get your **Project URL** and **publishable (or legacy anon public) key** from **Project Settings → API**. The browser app uses the publishable/anon key; never use a `service_role` or secret key here.
 
 ```bash
-cp .env.example .env               # keep a record of your values
-cp config.example.js config.js     # what the browser actually loads
+cp config.example.js config.js
 ```
 
-Then fill in both files:
+Fill in `config.js` with your project values:
 
 ```js
 // config.js
 window.ENV = {
   SUPABASE_URL: 'https://abcd1234.supabase.co',
-  SUPABASE_ANON_KEY: 'eyJhbGciOi...',
+  SUPABASE_ANON_KEY: 'your-publishable-or-anon-key',
 };
 ```
 
-> **Why both files?** A static site has no server to read `.env` from, so the browser gets its values from `config.js`. `.env` is the standard place to keep them, and hosting providers use the same variable names (see Deploying). Both files are gitignored.
+> `config.js` is loaded by the browser and is gitignored. `.env.example` documents the same variable names for hosting configuration; a static browser app does not load `.env` itself.
 
-> **Security:** the anon key is meant to be public. The data is protected by the RLS policies in `schema.sql`. **Never** use the `service_role` key in this app.
+> **Security:** publishable/anon keys are intended for client use. Row Level Security in `schema.sql` protects user data. **Never** use a `service_role` or secret key in this app.
 
 ### 4. Run it locally
 
@@ -88,15 +101,15 @@ python -m http.server 5500  # Python
 
 You can also use the VS Code **Live Server** extension. Then open the URL it prints.
 
-## Deploying
+## Deploying to Netlify
 
-The app is fully static, so Netlify, Vercel, Cloudflare Pages, and GitHub Pages all work. Set `SUPABASE_URL` and `SUPABASE_ANON_KEY` as environment variables in your host, then use this build command to generate `config.js`:
+Connect the GitHub repository to Netlify and set the publish directory to `.`. Add `SUPABASE_URL` and `SUPABASE_ANON_KEY` under **Site configuration → Environment variables**, then set this build command to generate the browser config:
 
 ```bash
-echo "window.ENV={SUPABASE_URL:'$SUPABASE_URL',SUPABASE_ANON_KEY:'$SUPABASE_ANON_KEY'};" > config.js
+printf "window.ENV = { SUPABASE_URL: '%s', SUPABASE_ANON_KEY: '%s' };\n" "$SUPABASE_URL" "$SUPABASE_ANON_KEY" > config.js
 ```
 
-Leave the publish directory as the project root. Remember to add your production URL to Supabase's **Site URL** and **Redirect URLs**.
+After deployment, add the Netlify URL to Supabase **Authentication → URL Configuration** as the Site URL and a Redirect URL. Replace the TODO in **Live App** above with the deployed URL.
 
 ### Production notes
 
