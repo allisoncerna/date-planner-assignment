@@ -1,22 +1,18 @@
 # Date & Hangout Planner
 
-A full-stack date and hangout planner for collecting ideas, sorting them by how likely they are to happen, and checking them off once you've done them. The frontend is a static HTML/CSS/JavaScript app, with Supabase providing authentication and the database.
+A cozy, full-stack web application designed to help you save, organize, and track date and hangout ideas with user authentication and persistent database storage.
 
-## Live App
+## Links
 
-**Netlify URL:** https://date-planner-assignment.netlify.app/
+- **GitHub Repository:** [allisoncerna/date-planner-assignment](https://github.com/allisoncerna/date-planner-assignment)
+- **Live Deployed App:** [https://date-planner-assignment.netlify.app/](https://date-planner-assignment.netlify.app/)
+- **Demo Video:** Add your unlisted YouTube video URL here before submitting.
 
-## Technologies
+## Technologies Used
 
-- HTML
-- Tailwind CSS (Play CDN) and custom CSS
-- JavaScript
-- Supabase Auth and Postgres
-- Netlify (static hosting)
-
-## Demo
-
-**Unlisted YouTube demo:** TODO: add the video URL before submitting.
+- **Frontend:** HTML5, Tailwind CSS (via CDN), custom CSS, Vanilla JavaScript
+- **Backend & Database:** Supabase (PostgreSQL, Supabase Auth, Row Level Security)
+- **Deployment:** Netlify
 
 ## Features
 
@@ -41,9 +37,18 @@ A full-stack date and hangout planner for collecting ideas, sorting them by how 
 └── README.md
 ```
 
-## Setup
+## Setup & Installation Instructions
 
-### 1. Create a Supabase project
+To run or develop this project locally:
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/allisoncerna/date-planner-assignment.git
+cd date-planner-assignment
+```
+
+### 2. Create a Supabase project
 
 1. Create a free project at [supabase.com](https://supabase.com).
 2. Open **SQL Editor → New query**, paste in the contents of [`schema.sql`](schema.sql), and click **Run**.
@@ -61,13 +66,13 @@ A full-stack date and hangout planner for collecting ideas, sorting them by how 
 | `is_completed` | boolean     | Defaults to `false`                             |
 | `created_at`   | timestamptz | Defaults to `now()`                             |
 
-### 2. Configure authentication
+### 3. Configure authentication
 
 In **Authentication → URL Configuration**, set the **Site URL** to where the app runs (for example `http://localhost:5500`) and add it to **Redirect URLs**. This makes email confirmation links point back to the app.
 
 Email confirmation is optional. You can turn it off under **Authentication → Providers → Email** if you want new users logged in straight away.
 
-### 3. Add your credentials
+### 4. Add your credentials
 
 Get your **Project URL** and **publishable (or legacy anon public) key** from **Project Settings → API**. The browser app uses the publishable/anon key; never use a `service_role` or secret key here.
 
@@ -89,7 +94,7 @@ window.ENV = {
 
 > **Security:** publishable/anon keys are intended for client use. Row Level Security in `schema.sql` protects user data. **Never** use a `service_role` or secret key in this app.
 
-### 4. Run it locally
+### 5. Run it locally
 
 Any static file server works. Opening `index.html` directly from disk (`file://`) won't work because of auth redirects.
 
