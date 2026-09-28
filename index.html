@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Plan cozy dates and hangouts — save ideas, sort them, and check them off." />
+  <title>Date Night Planner</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS (Play CDN) + warm theme extension -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cream:  { 50: '#fffaf3', 100: '#fdf3e4', 200: '#f8e4c8' },
+            terra:  { 400: '#e07a5f', 500: '#d0654a', 600: '#b5523a', 700: '#8f3f2d' },
+            cocoa:  { 500: '#7a5c4f', 700: '#4a352c', 900: '#2b1f1a' },
+            sage:   { 100: '#e6efe3', 500: '#81a47a', 700: '#56744f' },
+            honey:  { 100: '#fdf0cf', 500: '#e9b44c', 700: '#a87a1c' },
+          },
+          fontFamily: {
+            display: ['Fraunces', 'Georgia', 'serif'],
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Custom styles -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body class="bg-cream-50 text-cocoa-900 font-sans antialiased min-h-screen">
+
+  <!-- =========================================================
+       LOADING SCREEN — visible until the auth state is known
+       ========================================================= -->
+  <div id="loading-screen" class="min-h-screen flex items-center justify-center">
+    <div class="flex flex-col items-center gap-3 text-cocoa-500">
+      <div class="spinner" aria-hidden="true"></div>
+      <p class="text-sm">Warming things up…</p>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       CONFIG ERROR — shown if Supabase credentials are missing
+       ========================================================= -->
+  <div id="config-error" class="hidden min-h-screen flex items-center justify-center p-4">
+    <div class="card max-w-lg w-full p-8">
+      <h1 class="font-display text-2xl font-bold text-terra-700 mb-2">Setup needed</h1>
+      <p class="text-cocoa-700 mb-4">
+        Supabase isn't configured yet. Copy <code class="code-pill">config.example.js</code> to
+        <code class="code-pill">config.js</code> and fill in your project URL and anon key.
+      </p>
+      <p class="text-sm text-cocoa-500">See <code class="code-pill">README.md</code> for full setup steps.</p>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       AUTH SCREEN — Login / Register
+       ========================================================= -->
+  <main id="auth-screen" class="hidden min-h-screen flex items-center justify-center p-4 warm-backdrop">
+    <div class="w-full max-w-md">
+      <header class="text-center mb-8">
+        <div class="text-5xl mb-3" aria-hidden="true">🕯️</div>
+        <h1 class="font-display text-4xl font-bold text-cocoa-900">Date Night Planner</h1>
+        <p class="mt-2 text-cocoa-500">Collect cozy ideas. Pick one. Go make a memory.</p>
+      </header>
+
+      <section class="card p-6 sm:p-8">
+        <!-- Tabs -->
+        <div class="flex bg-cream-100 rounded-xl p-1 mb-6" role="tablist" aria-label="Authentication">
+          <button id="tab-login" class="auth-tab is-active" role="tab" aria-selected="true" aria-controls="login-form" type="button">
+            Log in
+          </button>
+          <button id="tab-register" class="auth-tab" role="tab" aria-selected="false" aria-controls="register-form" type="button">
+            Register
+          </button>
+        </div>
+
+        <!-- Inline auth message (errors / info) -->
+        <div id="auth-message" class="hidden mb-4 rounded-lg px-4 py-3 text-sm" role="alert"></div>
+
+        <!-- Login form -->
+        <form id="login-form" class="space-y-4" role="tabpanel" aria-labelledby="tab-login" novalidate>
+          <div>
+            <label for="login-email" class="field-label">Email</label>
+            <input id="login-email" name="email" type="email" autocomplete="email" required class="field-input" placeholder="you@example.com" />
+          </div>
+          <div>
+            <label for="login-password" class="field-label">Password</label>
+            <input id="login-password" name="password" type="password" autocomplete="current-password" required class="field-input" placeholder="••••••••" />
+          </div>
+          <button type="submit" class="btn-primary w-full">Log in</button>
+        </form>
+
+        <!-- Register form -->
+        <form id="register-form" class="space-y-4 hidden" role="tabpanel" aria-labelledby="tab-register" novalidate>
+          <div>
+            <label for="register-email" class="field-label">Email</label>
+            <input id="register-email" name="email" type="email" autocomplete="email" required class="field-input" placeholder="you@example.com" />
+          </div>
+          <div>
+            <label for="register-password" class="field-label">Password</label>
+            <input id="register-password" name="password" type="password" autocomplete="new-password" required minlength="6" class="field-input" placeholder="At least 6 characters" />
+          </div>
+          <div>
+            <label for="register-confirm" class="field-label">Confirm password</label>
+            <input id="register-confirm" name="confirm" type="password" autocomplete="new-password" required minlength="6" class="field-input" placeholder="Type it again" />
+          </div>
+          <button type="submit" class="btn-primary w-full">Create account</button>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <!-- =========================================================
+       MAIN APP DASHBOARD
+       ========================================================= -->
+  <div id="app-screen" class="hidden min-h-screen">
+    <!-- Top bar -->
+    <header class="sticky top-0 z-20 bg-cream-50/90 backdrop-blur border-b border-cream-200">
+      <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="text-2xl" aria-hidden="true">🕯️</span>
+          <span class="font-display text-xl font-bold truncate">Date Night Planner</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <span id="user-email" class="hidden sm:inline text-sm text-cocoa-500 truncate max-w-[16rem]"></span>
+          <button id="logout-btn" type="button" class="btn-ghost">Log out</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8 space-y-8">
+      <!-- Stats -->
+      <section aria-label="Summary" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="stat-tile"><span class="stat-label">Total ideas</span><span id="stat-total" class="stat-value">0</span></div>
+        <div class="stat-tile"><span class="stat-label">Definite</span><span id="stat-definite" class="stat-value">0</span></div>
+        <div class="stat-tile"><span class="stat-label">Still to do</span><span id="stat-open" class="stat-value">0</span></div>
+        <div class="stat-tile"><span class="stat-label">Memories made</span><span id="stat-done" class="stat-value">0</span></div>
+      </section>
+
+      <!-- Add a new date -->
+      <section class="card p-5 sm:p-6" aria-labelledby="add-heading">
+        <h2 id="add-heading" class="font-display text-2xl font-bold mb-4">Add a date idea</h2>
+        <form id="add-form" class="grid gap-4 sm:grid-cols-12 items-end" novalidate>
+          <div class="sm:col-span-5">
+            <label for="add-title" class="field-label">Title</label>
+            <input id="add-title" name="title" type="text" maxlength="120" required class="field-input" placeholder="Sunset picnic at the lake" />
+          </div>
+          <div class="sm:col-span-3">
+            <label for="add-category" class="field-label">Category</label>
+            <input id="add-category" name="category" type="text" maxlength="40" required list="category-options" class="field-input" placeholder="Outdoors" />
+            <datalist id="category-options">
+              <option value="Coffee"></option>
+              <option value="Dinner"></option>
+              <option value="Outdoors"></option>
+              <option value="Movies"></option>
+              <option value="Adventure"></option>
+              <option value="Stay In"></option>
+              <option value="Culture"></option>
+            </datalist>
+          </div>
+          <div class="sm:col-span-2">
+            <label for="add-status" class="field-label">Status</label>
+            <select id="add-status" name="status" class="field-input">
+              <option value="Wishlist">Wishlist</option>
+              <option value="Maybe">Maybe</option>
+              <option value="Definite">Definite</option>
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <button type="submit" class="btn-primary w-full">Add idea</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Filters -->
+      <section class="flex flex-wrap items-center justify-between gap-3" aria-label="Filters">
+        <h2 class="font-display text-2xl font-bold">Your dates</h2>
+        <div class="flex bg-cream-100 rounded-xl p-1" role="group" aria-label="Show">
+          <button type="button" class="filter-chip is-active" data-filter="all">All</button>
+          <button type="button" class="filter-chip" data-filter="open">To do</button>
+          <button type="button" class="filter-chip" data-filter="done">Completed</button>
+        </div>
+      </section>
+
+      <!-- Dates board: one column per status -->
+      <section id="board" class="grid gap-5 md:grid-cols-3" aria-live="polite">
+        <div class="board-column" data-status="Wishlist">
+          <div class="column-header">
+            <h3>💭 Wishlist</h3><span class="count-pill" data-count="Wishlist">0</span>
+          </div>
+          <ul class="column-list space-y-3" data-list="Wishlist"></ul>
+        </div>
+        <div class="board-column" data-status="Maybe">
+          <div class="column-header">
+            <h3>🤔 Maybe</h3><span class="count-pill" data-count="Maybe">0</span>
+          </div>
+          <ul class="column-list space-y-3" data-list="Maybe"></ul>
+        </div>
+        <div class="board-column" data-status="Definite">
+          <div class="column-header">
+            <h3>💛 Definite</h3><span class="count-pill" data-count="Definite">0</span>
+          </div>
+          <ul class="column-list space-y-3" data-list="Definite"></ul>
+        </div>
+      </section>
+
+      <!-- Empty state -->
+      <section id="empty-state" class="hidden text-center py-12">
+        <div class="text-5xl mb-3" aria-hidden="true">🌙</div>
+        <p class="font-display text-xl">No date ideas yet</p>
+        <p class="text-cocoa-500 mt-1">Add your first one above — coffee counts.</p>
+      </section>
+
+      <!-- Loading state for list -->
+      <section id="list-loading" class="hidden flex justify-center py-12">
+        <div class="spinner" aria-label="Loading dates"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toast-root" class="fixed bottom-4 inset-x-4 sm:inset-x-auto sm:right-4 z-50 flex flex-col gap-2 items-stretch sm:items-end" aria-live="assertive"></div>
+
+  <!-- Supabase JS SDK v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Local config (not committed). Defines window.ENV = { SUPABASE_URL, SUPABASE_ANON_KEY } -->
+  <script src="config.js"></script>
+  <!-- App logic -->
+  <script src="app.js"></script>
+</body>
+</html>
