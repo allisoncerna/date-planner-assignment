@@ -4,7 +4,7 @@ A full-stack date and hangout planner for collecting ideas, sorting them by how 
 
 ## Live App
 
-**Netlify URL:** TODO: add the deployed application URL before submitting.
+**Netlify URL:** https://date-planner-assignment.netlify.app/
 
 ## Technologies
 
